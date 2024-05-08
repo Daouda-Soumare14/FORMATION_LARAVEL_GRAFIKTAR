@@ -1,0 +1,10 @@
+php artisan serve : permet de demarrer le server
+php artisan route:list : permet de lister les routes
+php artisan make:migration : permet de faire des migration
+php artisan migrate : permet de demarrer notre migration
+php artisan make:modele Post  : permet de faire des migration (le nom du modele correspond au nom de la table au singulier)
+php artisan make:modele Post -m : permet de creer les migrations et les modeles en meme temps
+php artisan make:request BlogFileRequest : permet de creer dans mon dossier app un dossier request pour les validation de donnee
+php artisan ide-helper:models -M : permet l'autocompletion
+composer require barryvdh/laravel-debugbar --dev : permet d'installer un debugbar dans mon projet laravel 
+php artisan make:request CreatePostRequest : permet de creer un nouveau fichier dans le dossier request (pour la validation de formulaire)

@@ -3,48 +3,65 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
-use Illuminate\Routing\Route;
 use Illuminate\Contracts\View\View;
-use Illuminate\Auth\Events\Validated;
 use Illuminate\Http\RedirectResponse;
-use App\Http\Requests\BlogFilterRequest;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Contracts\Pagination\Paginator;
+use App\Http\Requests\FormPostRequest;
 
 class BlogController extends Controller
 {
     public function create()
-    {
-        return view('blog.create');
-    }
+{
+    // Crée une nouvelle instance de modèle de Post
+    $post = new Post();
 
-    public function store(Request $request)
-    {
-        $post = Post::create([
-            'title' => $request->input('title'),
-            'content' => $request->input('content'),
-            'slug' => Str::slug($request->input('title'))
-        ]);
+    // Retourne la vue "blog.create" en passant l'instance de Post à cette vue
+    return view('blog.create', compact('post'));
+}
 
-        return redirect(Route('blog.index'))->with('success', 'l\'article a bien été sauvegarder');
-    }
+public function store(FormPostRequest $request)
+{
+    // Crée un nouvel enregistrement de Post avec les données validées du formulaire
+    $post = Post::create($request->validated());
 
-    public function index() : View
-    {
-        $posts = Post::paginate(1);
+    // Redirige vers la page d'index du blog avec un message de succès
+    return redirect(Route('blog.index'))->with('success', 'L\'article a bien été sauvegardé');
+}
+
+public function edit(Post $post)
+{
+    // Retourne la vue "blog.edit" en passant l'instance du Post à éditer
+    return view('blog.edit', compact('post'));
+}
+
+public function update(Post $post, FormPostRequest $request)
+{
+    // Met à jour l'enregistrement du Post existant avec les données validées du formulaire
+    $post->update($request->validated());
+
+    // Redirige vers la page d'index du blog avec un message de succès
+    return redirect(Route('blog.index'))->with('success', 'L\'article a bien été modifié');
+}
+
+public function index() : View
+{
+    // Récupère tous les articles paginés
+    $posts = Post::paginate(1);
     
-        return view('blog.index', compact('posts'));
-    }
+    // Retourne la vue "blog.index" en passant les articles paginés à cette vue
+    return view('blog.index', compact('posts'));
+}
 
-    public function show(string $slug, Post $post) : RedirectResponse | View
+public function show(string $slug, Post $post) : RedirectResponse | View
+{
+    // Vérifie si le slug de l'article correspond au slug fourni dans l'URL
+    if($post->slug != $slug)
     {
-        if($post->slug != $slug)
-        {
-            return to_route('blog.show', ['slug' => $post->slug, 'id' => $post->id]);
-        }
-        return view('blog.show', compact('post'));
+        // Redirige vers l'URL correcte si les slugs ne correspondent pas
+        return to_route('blog.show', ['slug' => $post->slug, 'id' => $post->id]);
     }
+    // Retourne la vue "blog.show" en passant l'instance de Post à cette vue
+    return view('blog.show', compact('post'));
+}
+
 }
 

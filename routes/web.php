@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BlogController;
 use App\Models\Post;
 use Illuminate\Http\Request;
@@ -20,19 +21,23 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/login', [AuthController::class, 'login'])->name('auth.login');
+Route::delete('/logout', [AuthController::class, 'logout'])->name('auth.logout');
+Route::post('/login', [AuthController::class, 'dologin']);
+
 
 
 Route::prefix('/blog')->name('blog.')->controller(BlogController::class)->group(function() {
     Route::get('/', 'index')->name('index');
 
-    Route::get('/new', 'create')->name('create');
-    Route::post('/new', 'store')->name('store');
-    Route::get('/{post}/edit', 'edit')->name('edit');
-    Route::patch('/{post}/edit', 'update')->name('update');
+    Route::get('/new', 'create')->name('create')->middleware('auth');
+    Route::post('/new', 'store')->name('store')->middleware('auth');
+    Route::get('/{post}/edit', 'edit')->name('edit')->middleware('auth');
+    Route::patch('/{post}/edit', 'update')->name('update')->middleware('auth');
     
     Route::get('/{slug}-{post}', 'show')->where([
         'id' => '[0-9]+',
         'slug' => '[a-z0-9\-]+'
-    ])->name('show'); 
+    ])->name('show');
     
 });

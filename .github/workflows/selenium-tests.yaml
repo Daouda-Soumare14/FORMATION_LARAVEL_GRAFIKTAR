@@ -40,5 +40,5 @@ jobs:
           ls -R tests/
 
       - name: 🚀 Exécution du test Selenium
-        run: python test_selenium.py
+        run: python tests/test_selenium.py
 

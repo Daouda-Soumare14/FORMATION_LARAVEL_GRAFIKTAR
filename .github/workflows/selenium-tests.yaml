@@ -139,7 +139,8 @@ jobs:
         run: pytest tests/selenium_tests.py  # Adapte selon ton script
 
       - name: Upload Selenium test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: selenium-test-results
           path: reports/
+      

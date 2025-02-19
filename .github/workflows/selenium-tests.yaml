@@ -42,8 +42,11 @@ jobs:
           fi
           php artisan key:generate
 
-      - name: 🗄️ Vérifier la base de données et faire les migrations
+      - name: 🗄️ Configurer SQLite et faire les migrations
         run: |
+          touch database/database.sqlite
+          echo "DB_CONNECTION=sqlite" > .env
+          echo "DB_DATABASE=$(pwd)/database/database.sqlite" >> .env
           php artisan migrate:fresh --seed || (echo "❌ Problème de migration !" && exit 1)
 
       - name: 🛠 Installer ChromeDriver

@@ -1,14 +1,97 @@
+# name: Selenium Tests
+
+# on:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+
+# jobs:
+#   selenium-test:
+#     runs-on: ubuntu-latest  # Exécution sur un serveur Linux GitHub
+
+#     services:
+#       selenium:
+#         image: selenium/standalone-chrome
+#         ports:
+#           - 4444:4444
+
+#     steps:
+#       - name: 📥 Checkout du repository
+#         uses: actions/checkout@v4
+
+#       - name: 🛠️ Installation de PHP et Composer
+#         run: |
+#           sudo apt update
+#           sudo apt install -y php-cli php-mbstring php-xml php-bcmath php-tokenizer php-curl php-zip unzip curl
+#           curl -sS https://getcomposer.org/installer | php
+#           sudo mv composer.phar /usr/local/bin/composer
+
+#       - name: 📦 Installation des dépendances Laravel
+#         run: |
+#           composer install --no-interaction --prefer-dist
+#           if [ ! -d "vendor" ]; then
+#             echo "❌ Le dossier vendor/ est manquant, l'installation Composer a échoué."
+#             exit 1
+#           fi
+
+#       - name: 📄 Vérifier et générer le fichier .env
+#         run: |
+#           if [ ! -f .env ]; then
+#             cp .env.example .env
+#           fi
+#           php artisan key:generate
+
+#       - name: 🗄️ Configurer SQLite et faire les migrations
+#         run: |
+#           touch database/database.sqlite
+#           echo "DB_CONNECTION=sqlite" > .env
+#           echo "DB_DATABASE=$(pwd)/database/database.sqlite" >> .env
+#           php artisan migrate:fresh --seed || (echo "❌ Problème de migration !" && exit 1)
+
+#       - name: 🛠 Installer ChromeDriver
+#         run: |
+#           sudo apt-get install -y chromium-chromedriver
+
+#       - name: 🐍 Installation de Python et Selenium
+#         run: |
+#           python -m pip install --upgrade pip
+#           pip install selenium webdriver-manager
+
+#       - name: 🚀 Démarrer Laravel en arrière-plan
+#         run: |
+#           nohup php artisan serve --host=127.0.0.1 --port=8000 > storage/logs/server.log 2>&1 &
+#           sleep 30  # Attendre que Laravel démarre correctement
+
+#       - name: 🔍 Vérifier si Laravel tourne et afficher les logs
+#         run: |
+#           if ! netstat -tulnp | grep ":8000"; then
+#             echo "⚠️ Laravel ne tourne pas sur le port 8000 !"
+#             echo "📄 Affichage des logs de Laravel :"
+#             cat storage/logs/server.log
+#             exit 1
+#           fi
+
+#       - name: 🔍 Vérifier si Laravel est accessible
+#         run: |
+#           for i in {1..10}; do
+#             curl -I http://127.0.0.1:8000 && exit 0
+#             echo "Laravel n'est pas encore prêt... tentative $i/10"
+#             sleep 5
+#           done
+#           echo "❌ Laravel ne répond pas après plusieurs tentatives."
+#           exit 1  # Arrêt du processus si Laravel ne répond toujours pas
+
+#       - name: 🚀 Exécution du test Selenium
+#         run: python tests/test_selenium.py
+
 name: Selenium Tests
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
+on: [push, pull_request]
 
 jobs:
-  selenium-test:
-    runs-on: ubuntu-latest  # Exécution sur un serveur Linux GitHub
+  test:
+    runs-on: ubuntu-latest
 
     services:
       selenium:
@@ -17,70 +100,35 @@ jobs:
           - 4444:4444
 
     steps:
-      - name: 📥 Checkout du repository
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      - name: 🛠️ Installation de PHP et Composer
-        run: |
-          sudo apt update
-          sudo apt install -y php-cli php-mbstring php-xml php-bcmath php-tokenizer php-curl php-zip unzip curl
-          curl -sS https://getcomposer.org/installer | php
-          sudo mv composer.phar /usr/local/bin/composer
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+          extensions: sqlite3
 
-      - name: 📦 Installation des dépendances Laravel
-        run: |
-          composer install --no-interaction --prefer-dist
-          if [ ! -d "vendor" ]; then
-            echo "❌ Le dossier vendor/ est manquant, l'installation Composer a échoué."
-            exit 1
-          fi
+      - name: Install Composer dependencies
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
 
-      - name: 📄 Vérifier et générer le fichier .env
-        run: |
-          if [ ! -f .env ]; then
-            cp .env.example .env
-          fi
-          php artisan key:generate
+      - name: Start Laravel server
+        run: php artisan serve --host=0.0.0.0 --port=8000 &
 
-      - name: 🗄️ Configurer SQLite et faire les migrations
-        run: |
-          touch database/database.sqlite
-          echo "DB_CONNECTION=sqlite" > .env
-          echo "DB_DATABASE=$(pwd)/database/database.sqlite" >> .env
-          php artisan migrate:fresh --seed || (echo "❌ Problème de migration !" && exit 1)
-
-      - name: 🛠 Installer ChromeDriver
-        run: |
-          sudo apt-get install -y chromium-chromedriver
-
-      - name: 🐍 Installation de Python et Selenium
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+          
+      - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install selenium webdriver-manager
+          pip install -r requirements.txt
 
-      - name: 🚀 Démarrer Laravel en arrière-plan
-        run: |
-          nohup php artisan serve --host=127.0.0.1 --port=8000 > storage/logs/server.log 2>&1 &
-          sleep 30  # Attendre que Laravel démarre correctement
+      - name: Install ChromeDriver
+        run: sudo apt-get install -y chromium-chromedriver
 
-      - name: 🔍 Vérifier si Laravel tourne et afficher les logs
-        run: |
-          if ! netstat -tulnp | grep ":8000"; then
-            echo "⚠️ Laravel ne tourne pas sur le port 8000 !"
-            echo "📄 Affichage des logs de Laravel :"
-            cat storage/logs/server.log
-            exit 1
-          fi
-
-      - name: 🔍 Vérifier si Laravel est accessible
-        run: |
-          for i in {1..10}; do
-            curl -I http://127.0.0.1:8000 && exit 0
-            echo "Laravel n'est pas encore prêt... tentative $i/10"
-            sleep 5
-          done
-          echo "❌ Laravel ne répond pas après plusieurs tentatives."
-          exit 1  # Arrêt du processus si Laravel ne répond toujours pas
-
-      - name: 🚀 Exécution du test Selenium
-        run: python tests/test_selenium.py
+      - name: Run Selenium tests
+        env:
+          SELENIUM_REMOTE_URL: http://localhost:4444/wd/hub
+        run: python -m unittest discover -s tests

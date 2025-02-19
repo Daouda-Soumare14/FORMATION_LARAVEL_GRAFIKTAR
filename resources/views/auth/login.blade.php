@@ -11,7 +11,7 @@
 
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input class="form-control" type="email" name="email" id="email" value="{{ old('emaill') }}">
+                    <input class="form-control" type="email" name="email" id="email" value="{{ old('email') }}">
                     @error('email')
                         <div class="text-danger">{{ $message }}</div>
                     @enderror

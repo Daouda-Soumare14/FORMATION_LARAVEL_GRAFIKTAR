@@ -86,7 +86,9 @@
 #         run: python tests/test_selenium.py
 
 
-name: Selenium Tests
+
+
+name: Laravel Selenium Tests
 
 on: [push, pull_request]
 
@@ -96,42 +98,48 @@ jobs:
 
     services:
       selenium:
-        image: selenium/standalone-chrome
+        image: selenium/standalone-chrome:latest
         ports:
           - 4444:4444
 
+    env:
+      DB_CONNECTION: sqlite
+      DB_DATABASE: database/database.sqlite
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.0'
-          extensions: sqlite3
+          php-version: '8.1'
 
       - name: Install Composer dependencies
-        run: composer install --no-progress --prefer-dist --optimize-autoloader
+        run: composer install --no-progress --no-suggest --prefer-dist
+
+      - name: Set up SQLite database
+        run: |
+          mkdir -p database
+          touch database/database.sqlite
+          php artisan migrate --force
 
       - name: Start Laravel server
-        run: php artisan serve --host=0.0.0.0 --port=8000 &
+        run: php artisan serve &
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: '3.10'
 
-      - name: Create and activate virtual environment
-        run: |
-          python3 -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Install ChromeDriver
-        run: sudo apt-get install -y chromium-chromedriver
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
 
       - name: Run Selenium tests
-        run: |
-          source venv/bin/activate
-          python -m unittest discover -s tests
+        run: pytest tests/selenium_tests.py  # Adapte selon ton script
+
+      - name: Upload Selenium test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: selenium-test-results
+          path: reports/

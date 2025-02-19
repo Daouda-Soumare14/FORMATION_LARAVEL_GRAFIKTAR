@@ -23,7 +23,7 @@ def driver():
 def test_login_page_load(driver):
     """Test de chargement de la page de connexion."""
     print("[ℹ️] Chargement de la page de connexion...")
-    driver.get("http://127.0.0.1:8000/login")
+    driver.get("http://host.docker.internal:8000/login")
 
     try:
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "email")))
@@ -33,7 +33,7 @@ def test_login_page_load(driver):
 
 def test_login(driver):
     """Test d'authentification avec des identifiants valides."""
-    driver.get("http://127.0.0.1:8000/login")
+    driver.get("http://host.docker.internal:8000/login")
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "email")))
 
     # Remplir le formulaire de connexion
@@ -46,7 +46,7 @@ def test_login(driver):
     print("[✅] Bouton de connexion cliqué.")
 
     # Attendre la redirection
-    WebDriverWait(driver, 5).until(EC.url_changes("http://127.0.0.1:8000/login"))
+    WebDriverWait(driver, 5).until(EC.url_changes("http://host.docker.internal:8000/login"))
     print(f"[ℹ️] URL après connexion : {driver.current_url}")
 
     # Vérifier si la connexion a réussi en détectant un élément spécifique

@@ -1,5 +1,3 @@
-import sys
-import time
 import pytest
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -22,46 +20,49 @@ def driver():
 
 def test_login_page_load(driver):
     """Test de chargement de la page de connexion."""
-    print("[ℹ️] Chargement de la page de connexion...")
-    driver.get("http://host.docker.internal:8000/login")
+    url = "http://127.0.0.1:8000/login"
+    print(f"[ℹ️] Chargement de la page : {url}")
+    
+    driver.get(url)
 
     try:
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "email")))
-        print("[✅] Page de connexion détectée.")
-    except:
-        raise AssertionError("[❌] La page de connexion ne s'est pas chargée correctement.")
+        print("[✅] Page de connexion chargée avec succès.")
+    except Exception as e:
+        print(f"[❌] Erreur : {str(e)}")
+        raise AssertionError("La page de connexion ne s'est pas chargée correctement.")
 
 def test_login(driver):
     """Test d'authentification avec des identifiants valides."""
-    driver.get("http://host.docker.internal:8000/login")
+    url = "http://127.0.0.1:8000/login"
+    driver.get(url)
+    
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "email")))
 
-    # Remplir le formulaire de connexion
+    # Remplir le formulaire
     driver.find_element(By.NAME, "email").send_keys("daoudasoum14@gmail.com")
     driver.find_element(By.NAME, "password").send_keys("soumare")
     print("[✅] Formulaire rempli.")
 
     # Cliquer sur le bouton de connexion
-    driver.find_element(By.CSS_SELECTOR, "button.btn.btn-primary").click()
+    driver.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
     print("[✅] Bouton de connexion cliqué.")
 
-    # Attendre la redirection
-    WebDriverWait(driver, 5).until(EC.url_changes("http://host.docker.internal:8000/login"))
+    # Vérifier la redirection après connexion
+    WebDriverWait(driver, 10).until(lambda d: d.current_url != url)
     print(f"[ℹ️] URL après connexion : {driver.current_url}")
 
-    # Vérifier si la connexion a réussi en détectant un élément spécifique
+    # Vérifier si la connexion a réussi
     try:
         WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".nav-link.logout")))
         print("[✅] Connexion réussie !")
     except:
-        error_message = ""
         try:
-            error_element = driver.find_element(By.CSS_SELECTOR, ".text-danger")
-            error_message = error_element.text.strip()
+            error_message = driver.find_element(By.CSS_SELECTOR, ".text-danger").text.strip()
         except:
-            error_message = "[⚠️] Aucun message d'erreur visible, mais la connexion semble échouer."
+            error_message = "[⚠️] Aucun message d'erreur détecté, mais la connexion a échoué."
 
-        raise AssertionError(f"[❌] La connexion a échoué : {error_message}")
+        raise AssertionError(f"[❌] Connexion échouée : {error_message}")
 
-    # Afficher le titre de la page après connexion
-    print("[✅] Titre après connexion:", driver.title)
+    # Vérifier le titre de la page après connexion
+    print(f"[✅] Titre après connexion : {driver.title}")

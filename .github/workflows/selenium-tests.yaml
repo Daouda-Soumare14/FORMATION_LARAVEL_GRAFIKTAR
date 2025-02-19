@@ -1,61 +1,4 @@
-# name: Laravel Selenium Tests
-
-# on: [push, pull_request]
-
-# jobs:
-#   test:
-#     runs-on: ubuntu-latest
-
-#     services:
-#       selenium:
-#         image: selenium/standalone-chrome:latest
-#         ports:
-#           - 4444:4444
-
-#     env:
-#       DB_CONNECTION: sqlite
-#       DB_DATABASE: database/database.sqlite
-
-#     steps:
-#       - name: 📥 Checkout du code
-#         uses: actions/checkout@v4
-
-#       - name: 🛠 Installer PHP et Composer
-#         uses: shivammathur/setup-php@v2
-#         with:
-#           php-version: '8.2'
-
-#       - name: 📦 Installer les dépendances Laravel
-#         run: composer install --no-progress --prefer-dist
-
-#       - name: 📄 Configurer la base SQLite
-#         run: |
-#           mkdir -p database
-#           touch database/database.sqlite
-#           php artisan migrate --force
-
-#       - name: 🚀 Démarrer le serveur Laravel en arrière-plan
-#         run: php artisan serve --host=127.0.0.1 --port=8000 &
-
-#       - name: 🐍 Installer Python et Selenium
-#         uses: actions/setup-python@v4
-#         with:
-#           python-version: '3.10'
-
-#       - name: 📦 Installer pytest et Selenium
-#         run: pip install pytest selenium webdriver-manager
-
-#       - name: 🏎️ Exécuter les tests Selenium
-#         run: pytest tests/test_selenium.py
-
-#       - name: 📤 Sauvegarder les résultats des tests Selenium
-#         uses: actions/upload-artifact@v4
-#         with:
-#           name: selenium-test-results
-#           path: reports/
-
-
-name: Tests Selenium avec Laravel
+name: Laravel Selenium Tests
 
 on: [push, pull_request]
 
@@ -64,59 +7,59 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      mysql:
-        image: mysql:5.7
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: test_db
+      selenium:
+        image: selenium/standalone-chrome:latest
         ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin ping --host=localhost --user=root --password=root" --health-interval=10s --health-timeout=5s --health-retries=3
+          - 4444:4444
+
+    env:
+      DB_CONNECTION: sqlite
+      DB_DATABASE: database/database.sqlite
 
     steps:
-      - name: Checkout repository
+      - name: 📥 Checkout du code
         uses: actions/checkout@v4
 
-      - name: Set up PHP
+      - name: 🛠 Installer PHP et Composer
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1'
-          extensions: mbstring, pdo, sqlite, pdo_sqlite, zip
-          tools: composer:v2
+          php-version: '8.2'
 
-      - name: Install dependencies
-        run: composer install --no-progress --no-suggest
+      - name: 📦 Installer les dépendances Laravel
+        run: composer install --no-progress --prefer-dist
 
-      - name: Copy environment file
-        run: cp .env.example .env
+      - name: 📄 Configurer la base SQLite
+        run: |
+          mkdir -p database
+          touch database/database.sqlite
+          php artisan migrate --force
 
-      - name: Generate application key
-        run: php artisan key:generate
-
-      - name: Run migrations
-        run: php artisan migrate --force
-
-      - name: Start Laravel server
+      - name: 🚀 Démarrer le serveur Laravel en arrière-plan
         run: php artisan serve --host=0.0.0.0 --port=8000 &
 
-      - name: Vérifier si Laravel est prêt
+      - name: ⏳ Attendre que Laravel soit prêt
         run: |
           for i in {1..10}; do
             curl -Is http://127.0.0.1:8000 | head -n 1 && exit 0
-            echo "Laravel n'est pas encore prêt... tentative $i/10"
+            echo "⏳ Laravel n'est pas encore prêt... tentative $i/10"
             sleep 5
           done
           echo "❌ Laravel ne répond pas après plusieurs tentatives."
           exit 1
 
-      - name: Set up Python
+      - name: 🐍 Installer Python et Selenium
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: Install Selenium dependencies
-        run: |
-          pip install -r requirements.txt
+      - name: 📦 Installer pytest et Selenium
+        run: pip install pytest selenium webdriver-manager
 
-      - name: Run Selenium tests
+      - name: 🏎️ Exécuter les tests Selenium
         run: pytest tests/test_selenium.py
+
+      - name: 📤 Sauvegarder les résultats des tests Selenium
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-test-results
+          path: reports/

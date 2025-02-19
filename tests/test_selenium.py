@@ -23,7 +23,7 @@ def driver():
 def test_login_page_load(driver):
     """Test de chargement de la page de connexion."""
     print("[ℹ️] Chargement de la page de connexion...")
-    driver.get("http://host.docker.internal:8000/login")
+    driver.get("http://127.0.0.1:8000/login")
 
     try:
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "email")))

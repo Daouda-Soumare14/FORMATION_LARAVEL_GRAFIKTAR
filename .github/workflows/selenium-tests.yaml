@@ -27,15 +27,20 @@ jobs:
           curl -sS https://getcomposer.org/installer | php
           sudo mv composer.phar /usr/local/bin/composer
 
+      - name: 📦 Installation des dépendances Laravel
+        run: |
+          composer install --no-interaction --prefer-dist
+          if [ ! -d "vendor" ]; then
+            echo "❌ Le dossier vendor/ est manquant, l'installation Composer a échoué."
+            exit 1
+          fi
+
       - name: 📄 Vérifier et générer le fichier .env
         run: |
           if [ ! -f .env ]; then
             cp .env.example .env
           fi
           php artisan key:generate
-
-      - name: 📦 Installation des dépendances Laravel
-        run: composer install --no-interaction --prefer-dist
 
       - name: 🐍 Installation de Python et Selenium
         run: |
@@ -45,7 +50,7 @@ jobs:
       - name: 🚀 Démarrer Laravel en arrière-plan
         run: |
           php artisan serve --host=0.0.0.0 --port=8000 &
-          sleep 30  # Attendre 30 secondes pour s'assurer que Laravel est bien lancé
+          sleep 30  # Attendre que Laravel démarre correctement
 
       - name: 🔍 Vérifier si Laravel est accessible
         run: |
@@ -55,15 +60,6 @@ jobs:
             sleep 5
           done
           exit 1  # Arrêt du processus si Laravel ne répond toujours pas
-
-      - name: 🕵️ Vérification des fichiers disponibles
-        run: |
-          echo "📂 Contenu du répertoire de travail :"
-          ls -R
-          echo "📂 Chemin actuel :"
-          pwd
-          echo "📂 Contenu du dossier tests :"
-          ls -R tests/
 
       - name: 🚀 Exécution du test Selenium
         run: python tests/test_selenium.py

@@ -23,17 +23,19 @@ jobs:
       - name: 🛠️ Installation de PHP et Composer
         run: |
           sudo apt update
-          sudo apt install -y php-cli php-mbstring unzip curl
+          sudo apt install -y php-cli php-mbstring php-xml php-bcmath php-tokenizer php-curl php-zip unzip curl
           curl -sS https://getcomposer.org/installer | php
           sudo mv composer.phar /usr/local/bin/composer
 
-      - name: 📦 Installation des dépendances Laravel
+      - name: 📄 Vérifier et générer le fichier .env
         run: |
-          composer install --no-interaction --prefer-dist
+          if [ ! -f .env ]; then
+            cp .env.example .env
+          fi
+          php artisan key:generate
 
-      - name: 🔧 Configuration de l'environnement Laravel
-        run: |
-          php artisan key:generate  # Générer la clé d'application
+      - name: 📦 Installation des dépendances Laravel
+        run: composer install --no-interaction --prefer-dist
 
       - name: 🐍 Installation de Python et Selenium
         run: |
@@ -43,14 +45,16 @@ jobs:
       - name: 🚀 Démarrer Laravel en arrière-plan
         run: |
           php artisan serve --host=0.0.0.0 --port=8000 &
-          sleep 15  # Attendre que Laravel démarre
-
-      - name: 🔍 Vérifier si Laravel est bien lancé
-        run: netstat -tulnp | grep 8000 || ss -tulnp | grep 8000
-
+          sleep 30  # Attendre 30 secondes pour s'assurer que Laravel est bien lancé
 
       - name: 🔍 Vérifier si Laravel est accessible
-        run: curl -I http://localhost:8000 || exit 1
+        run: |
+          for i in {1..10}; do
+            curl -I http://127.0.0.1:8000 && exit 0
+            echo "Laravel n'est pas encore prêt... tentative $i/10"
+            sleep 5
+          done
+          exit 1  # Arrêt du processus si Laravel ne répond toujours pas
 
       - name: 🕵️ Vérification des fichiers disponibles
         run: |

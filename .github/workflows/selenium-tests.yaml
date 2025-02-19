@@ -46,7 +46,7 @@ jobs:
         run: pip install pytest selenium webdriver-manager
 
       - name: 🏎️ Exécuter les tests Selenium
-        run: pytest tests/selenium_tests.py
+        run: pytest tests/test_selenium.py
 
       - name: 📤 Sauvegarder les résultats des tests Selenium
         uses: actions/upload-artifact@v4

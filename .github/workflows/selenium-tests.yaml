@@ -35,13 +35,14 @@ jobs:
           php artisan migrate --force
 
       - name: 🚀 Démarrer le serveur Laravel en arrière-plan
-        run: php artisan serve --host=0.0.0.0 --port=8000 &
+        run: php artisan serve --host=127.0.0.1 --port=8000 &
 
       - name: ⏳ Attendre que Laravel soit prêt
         run: |
-          for i in {1..10}; do
-            curl -Is http://127.0.0.1:8000 | head -n 1 && exit 0
-            echo "⏳ Laravel n'est pas encore prêt... tentative $i/10"
+          echo "🕒 Attente de Laravel..."
+          for i in {1..15}; do
+            curl -sSf http://127.0.0.1:8000 > /dev/null && echo "✅ Laravel est prêt !" && exit 0
+            echo "⏳ Laravel n'est pas encore prêt... tentative $i/15"
             sleep 5
           done
           echo "❌ Laravel ne répond pas après plusieurs tentatives."

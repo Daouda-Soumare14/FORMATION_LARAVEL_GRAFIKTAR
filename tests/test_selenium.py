@@ -1,7 +1,9 @@
+import sys
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import time
 
 # Configurer les options du navigateur
 options = webdriver.ChromeOptions()
@@ -14,52 +16,56 @@ driver = webdriver.Remote(
     options=options
 )
 
-try:
-    print("[ℹ️] Chargement de la page de connexion...")
-    driver.get("http://host.docker.internal:8000/login")
+print("[ℹ️] Chargement de la page de connexion...")
+driver.get("http://host.docker.internal:8000/login")
+time.sleep(2)  # Attendre un peu pour éviter des problèmes de chargement
 
-    # Vérification si la page est bien chargée
-    WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.NAME, "email")))
+# Vérifier si la page de connexion est bien chargée
+if "Se connecter" in driver.page_source:
     print("[✅] Page de connexion détectée.")
+else:
+    print("[❌] La page de connexion ne s'est pas chargée correctement.")
+    sys.exit(1)  # Échec du test si la page ne charge pas
 
-    # Remplir le formulaire de connexion
-    driver.find_element(By.NAME, "email").send_keys("daoudasoum14@gmail.com")
-    driver.find_element(By.NAME, "password").send_keys("soumare")
-    print("[✅] Formulaire rempli.")
+# Remplir le formulaire de connexion
+driver.find_element(By.NAME, "email").send_keys("daoudasoum14@gmail.com")
+driver.find_element(By.NAME, "password").send_keys("soumare")
+print("[✅] Formulaire rempli.")
 
-    # Cliquer sur le bouton de connexion
-    driver.find_element(By.CSS_SELECTOR, "button.btn.btn-primary").click()
-    print("[✅] Bouton de connexion cliqué.")
+# Cliquer sur le bouton de connexion
+driver.find_element(By.CSS_SELECTOR, "button.btn.btn-primary").click()
+print("[✅] Bouton de connexion cliqué.")
 
-    # Attendre que la page se charge après la soumission
-    WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+# Attendre la redirection après connexion
+time.sleep(3)
+print(f"[ℹ️] URL après connexion : {driver.current_url}")
 
-    # Vérifier si on est toujours sur la page de connexion
-    current_url = driver.current_url
-    print(f"[ℹ️] URL après connexion : {current_url}")
+# Vérifier si on est toujours sur la page de connexion
+if "/login" in driver.current_url:
+    print("[⚠️] Toujours sur /login : possible échec d'authentification.")
 
-    if current_url == "http://host.docker.internal:8000/login":
-        # Rechercher les erreurs affichées en text-danger
-        error_elements = driver.find_elements(By.CSS_SELECTOR, ".text-danger")
-        error_messages = [error.text.strip() for error in error_elements if error.text.strip()]
+    # Vérifier si un message d'erreur s'affiche
+    try:
+        error_element = driver.find_element(By.CSS_SELECTOR, ".text-danger")
+        error_message = error_element.text.strip()
+        print(f"[❌] Erreur détectée : {error_message}")
+        driver.quit()
+        sys.exit(1)  # Échouer le test si une erreur est trouvée
+    except:
+        print("[⚠️] Aucun message d'erreur visible, mais la connexion semble échouer.")
+        driver.quit()
+        sys.exit(1)  # Échouer le test si l'authentification échoue sans message clair
 
-        if error_messages:
-            print("[❌] Erreurs détectées :")
-            for error in error_messages:
-                print(f"   - {error}")
-        else:
-            print("[⚠️] Toujours sur /login, mais aucun message d'erreur visible.")
-    
-    else:
-        print("[✅] Connexion réussie !")
+# Vérifier la présence d'un élément spécifique pour valider la connexion
+try:
+    WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".nav-link.logout")))
+    print("[✅] Connexion réussie !")
+except:
+    print("[❌] L'élément de déconnexion n'a pas été trouvé. La connexion a peut-être échoué.")
+    sys.exit(1)
 
-    # Afficher le titre de la page après connexion
-    print("[ℹ️] Titre après connexion :", driver.title if driver.title else "[⚠️] Aucun titre détecté.")
+# Afficher le titre de la page après connexion
+print("[✅] Titre après connexion:", driver.title)
 
-except Exception as e:
-    print(f"[❌] Erreur inattendue : {e}")
-
-finally:
-    print("[ℹ️] Fermeture de Selenium.")
-    driver.quit()
-
+# Fermer Selenium
+driver.quit()

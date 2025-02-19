@@ -9,3 +9,11 @@ php artisan ide-helper:models -M : permet l'autocompletion
 composer require barryvdh/laravel-debugbar --dev : permet d'installer un debugbar dans mon projet laravel 
 php artisan make:request CreatePostRequest : permet de creer un nouveau fichier dans le dossier request (pour la validation de formulaire)
 php artisan storage:link : cette commande permet de creer un lien symbolique entre le dossier public de storage et un dossier storage dans public
+
+
+
+
+git add .github/workflows/selenium-tests.yaml
+git commit -m "Correction du chemin du test Selenium"
+git push origin main
+

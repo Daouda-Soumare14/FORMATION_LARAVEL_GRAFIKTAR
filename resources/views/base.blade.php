@@ -40,7 +40,7 @@
 
                 <div class="navbar-nav ms-auto mb-2 mb-lg-0">
                     @auth
-                        {{ Auth::user()->name }}
+                        {{ Auth::user()->email }}
 
                         <form class="nav-item" action="{{ route('auth.logout')}}" method="POST">
                             @method('delete')

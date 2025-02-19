@@ -17,7 +17,7 @@ driver = webdriver.Remote(
 )
 
 print("[ℹ️] Chargement de la page de connexion...")
-driver.get("http://127.0.0.1:8000/login")
+driver.get("http://host.docker.internal:8000/login")
 time.sleep(2)  # Attendre un peu pour éviter des problèmes de chargement
 
 # Vérifier si la page de connexion est bien chargée

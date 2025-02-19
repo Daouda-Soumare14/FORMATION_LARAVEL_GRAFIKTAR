@@ -16,7 +16,7 @@ class AuthController extends Controller
     {
         $credentials = $request->validated();
 
-        if (Auth::attempt($credentials)){
+        if (false){
             $request->session()->regenerate();
 
             // return redirect()->route('blog.index');
